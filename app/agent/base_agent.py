@@ -1,49 +1,33 @@
 """
-Abstract contract for a BrandPilot agent.
+Base agent implementation.
 
-This module defines ONLY the interface that any concrete agent
-implementation must follow. It contains no business logic, no AI logic,
-and makes no API calls of any kind. Concrete implementations are out of
-scope for this sprint.
+For this sprint, BaseAgent orchestrates a simple chat flow by delegating
+to LLMService. No AI provider, database, authentication, or memory is
+implemented here.
 """
 
-from abc import ABC, abstractmethod
-from typing import Any
-
-from app.models.response import Response
+from app.services.llm_service import LLMService
 
 
-class BaseAgent(ABC):
-    """Abstract base class defining the contract for all BrandPilot agents.
+class BaseAgent:
+    """Agent that delegates chat generation to an LLMService instance."""
 
-    Any concrete agent (e.g. a social-media agent, a blogging agent, etc.)
-    must subclass this and implement `generate_post`, `generate_article`,
-    and `review`.
-    """
+    def __init__(self, llm_service: LLMService | None = None) -> None:
+        """Initialize the agent with an LLMService instance.
 
-    @abstractmethod
-    async def generate_post(self, *args: Any, **kwargs: Any) -> Response:
-        """Generate a short-form social media post.
+        Args:
+            llm_service: The LLM service to use. Defaults to a new
+                LLMService instance if not provided.
+        """
+        self.llm_service = llm_service or LLMService()
+
+    def chat(self, message: str) -> str:
+        """Handle a chat message end-to-end.
+
+        Args:
+            message: The user's chat message text.
 
         Returns:
-            A Response wrapping the generated post (or an error).
+            The generated response text from the LLM service.
         """
-        raise NotImplementedError
-
-    @abstractmethod
-    async def generate_article(self, *args: Any, **kwargs: Any) -> Response:
-        """Generate a long-form article.
-
-        Returns:
-            A Response wrapping the generated article (or an error).
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    async def review(self, *args: Any, **kwargs: Any) -> Response:
-        """Review and critique a piece of existing content.
-
-        Returns:
-            A Response wrapping the review result (or an error).
-        """
-        raise NotImplementedError
+        return self.llm_service.generate(message)

@@ -25,3 +25,23 @@ class Response(BaseModel):
     success: bool
     message: str
     data: Optional[Any] = None
+
+
+class ChatResponse(BaseModel):
+    """Response payload for the /chat endpoint.
+
+    Attributes:
+        response: The generated reply text.
+    """
+
+    response: str
+
+
+class ChatResponse(BaseModel):
+    """Response payload for the /chat endpoint.
+
+    Attributes:
+        response: The text response generated for the user's message.
+    """
+
+    response: str
