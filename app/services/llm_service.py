@@ -1,22 +1,39 @@
 """
 LLM service implementation.
 
-For this sprint, LLMService is a mock implementation used to validate the
-end-to-end request flow. No real AI provider (OpenAI, Ollama, etc.) is
-connected here.
+Integrates with a locally running Ollama server to generate chat
+completions. No other AI provider, streaming, memory, or database is
+implemented here.
 """
+
+from ollama import Client
+
+from app.config.settings import settings
 
 
 class LLMService:
-    """Mock LLM service used until a real provider is integrated."""
+    """LLM service backed by a local Ollama server."""
+
+    def __init__(self) -> None:
+        """Initialize a single reusable Ollama client instance."""
+        self._client = Client(host=settings.ollama_base_url)
 
     def generate(self, text: str) -> str:
-        """Generate a response for the given input text.
+        """Generate a response for the given input text via Ollama.
 
         Args:
             text: The input text/prompt.
 
         Returns:
-            A fixed mock response string.
+            The assistant's reply text, or a fallback message if the
+            Ollama server is unavailable or the request fails.
         """
-        return "This is a mock response."
+        try:
+            response = self._client.chat(
+                model=settings.ollama_model,
+                messages=[{"role": "user", "content": text}],
+                stream=False,
+            )
+            return response.message.content
+        except Exception:
+            return "Ollama is unavailable."

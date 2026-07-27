@@ -28,5 +28,8 @@ class Settings(BaseSettings):
     debug: bool = False
     log_level: str = "INFO"
 
+    ollama_base_url: str = "http://127.0.0.1:11434"
+    ollama_model: str = "qwen2.5:7b"
+
 
 settings = Settings()
