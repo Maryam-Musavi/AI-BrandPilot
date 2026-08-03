@@ -170,7 +170,7 @@ class CalculatorTool(BaseTool):
             return False
         return True
 
-    def run(self, query: str) -> str:
+    def execute(self, query: str) -> str:
         """Evaluate the arithmetic expression found in the query.
 
         Args:

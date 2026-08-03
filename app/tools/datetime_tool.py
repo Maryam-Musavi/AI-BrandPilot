@@ -61,7 +61,7 @@ class DateTimeTool(BaseTool):
             or _matches_any(_DAY_PATTERNS, normalized)
         )
 
-    def run(self, query: str) -> str:
+    def execute(self, query: str) -> str:
         """Answer a date/time/day question using the current system time.
 
         Args:
