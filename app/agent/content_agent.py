@@ -1,13 +1,20 @@
 """
 Content agent implementation.
 
-Takes a content brief (topic + angle + keywords) from ResearchAgent and
-drafts a LinkedIn post in the configured brand voice, by composing the
-same persona + system prompt pattern used elsewhere in the project and
+Takes a content brief (topic + angle + keywords, and optionally
+retrieval-augmented context_snippets) from ResearchAgent and drafts a
+LinkedIn post in the configured brand voice, by composing the same
+persona + system prompt pattern used elsewhere in the project and
 delegating text generation to LLMService.
+
+Sprint 12: when the brief includes "context_snippets" (retrieved from
+the local knowledge base), they're added to the prompt as reference
+material for factual grounding. This is purely additive -- when no
+snippets are present (empty/not-yet-populated knowledge base), the
+composed prompt is byte-for-byte identical to Sprint 11's.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from app.services.llm_service import LLMService
 from app.services.persona_service import PersonaService
@@ -60,10 +67,15 @@ class ContentAgent:
         """
         persona = self._load_persona_safely()
         system_prompt = self.prompt_service.load_prompt(SYSTEM_PROMPT_FILENAME)
+        reference_material = self._format_context_snippets(
+            brief.get("context_snippets", [])
+        )
         instruction = self._build_instruction(brief)
 
         sections = [
-            section for section in (persona, system_prompt, instruction) if section
+            section
+            for section in (persona, system_prompt, reference_material, instruction)
+            if section
         ]
         combined = "\n\n".join(sections)
 
@@ -85,6 +97,30 @@ class ContentAgent:
             return self.persona_service.load_persona()
         except FileNotFoundError:
             return ""
+
+    @staticmethod
+    def _format_context_snippets(snippets: List[str]) -> str:
+        """Format retrieved knowledge-base snippets as reference material.
+
+        Args:
+            snippets: Chunk texts retrieved from the knowledge base for
+                this brief's topic. May be empty.
+
+        Returns:
+            A formatted "Reference material" section, or an empty
+            string if there are no snippets -- in which case this
+            contributes nothing to the composed prompt, preserving
+            Sprint 11 behavior exactly.
+        """
+        if not snippets:
+            return ""
+
+        lines = [
+            "Reference material from the local knowledge base "
+            "(for factual grounding -- use the ideas, don't quote verbatim):"
+        ]
+        lines.extend(f"- {snippet}" for snippet in snippets)
+        return "\n".join(lines)
 
     @staticmethod
     def _build_instruction(brief: Dict[str, Any]) -> str:
