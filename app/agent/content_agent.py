@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Optional
 from app.services.llm_service import LLMService
 from app.services.persona_service import PersonaService
 from app.services.prompt_service import PromptService
-from memory.database import Database
+from app.memory.database import Database
 
 SYSTEM_PROMPT_FILENAME = "system_prompt.md"
 

@@ -1,19 +1,23 @@
 """FastAPI application entrypoint for AI BrandPilot.
 
-Exposes a root endpoint, a health-check endpoint, and a mock chat
-endpoint. No real AI, database, authentication, or business logic is
-implemented here.
+Exposes a root endpoint, a health-check endpoint, a chat endpoint,
+and LinkedIn post management endpoints for the automated content
+workflow with human approval.
 """
 
 from fastapi import FastAPI
 
 from app.agent.base_agent import BaseAgent
+from app.api.linkedin_routes import router as linkedin_router
 from app.config.settings import settings
 from app.models.message import ChatRequest
 from app.models.response import ChatResponse
 
 app = FastAPI(title=settings.app_name, version="0.1.0")
 agent = BaseAgent()
+
+# Include LinkedIn routes
+app.include_router(linkedin_router)
 
 
 @app.get("/")

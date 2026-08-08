@@ -24,7 +24,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
 from app.services.knowledge_service import KnowledgeService
-from memory.database import Database
+from app.memory.database import Database
 
 _MOCK_TOPICS: List[str] = [
     "Why LLMOps is becoming its own discipline",
