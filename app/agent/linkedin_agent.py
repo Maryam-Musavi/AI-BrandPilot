@@ -33,7 +33,7 @@ from app.agent.research_agent import (
     ResearchAgent,
 )
 from app.services.knowledge_service import KnowledgeService
-from memory.database import Database
+from app.memory.database import Database
 
 STATUS_IDEA = "idea"
 STATUS_PENDING_APPROVAL = "pending_approval"

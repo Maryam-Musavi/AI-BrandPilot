@@ -1,7 +1,44 @@
+```
+# Database files
+*.db
+
+# Environment files
+.env
+.env.local
+*.env.*
+
+# Dependencies
 __pycache__/
 *.pyc
-.env
-*.db
-data/
+*.pyo
+*.pyd
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Logs
 *.log
+
+# OS generated files
 .DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Coverage reports
+.coverage
+htmlcov/
+coverage/
+
+# Python specific
+*.py[cod]
+*$py.class
+*.so
+.Python
+```
