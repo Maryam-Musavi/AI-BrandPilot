@@ -1,0 +1,15 @@
+# --- Web API ---
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+
+# --- Config / data models ---
+pydantic==2.10.4
+pydantic-settings==2.7.1
+PyYAML==6.0.2
+
+# --- LLM backend (local Ollama) ---
+ollama==0.4.5
+
+# --- Testing ---
+pytest==8.3.4
+httpx  # version resolved by ollama's own requirement; needed for FastAPI TestClient

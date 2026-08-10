@@ -22,9 +22,9 @@ import math
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
+from app.memory.knowledge_store import KnowledgeStore
 from app.services.chunking import chunk_text
 from app.services.embedding_service import EmbeddingService, EmbeddingUnavailableError
-from memory.knowledge_store import KnowledgeStore
 
 DEFAULT_TOP_K = 3
 

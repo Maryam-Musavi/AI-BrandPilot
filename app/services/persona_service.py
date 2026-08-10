@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Optional, Union
 import yaml
 
 PERSONA_PATH = (
-    Path(__file__).resolve().parent.parent.parent / "memory" / "persona.yaml"
+    Path(__file__).resolve().parent.parent / "memory" / "persona.yaml"
 )
 
 _FIELDS: List[tuple[str, str]] = [

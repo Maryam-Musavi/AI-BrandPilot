@@ -584,6 +584,60 @@ Avoid adding unnecessary infrastructure.
 
 ---
 
+# 20.1. Posting Cadence and Approval (Sprint 13)
+
+The project's actual operating goal is: **two LinkedIn posts a week,
+each reviewed by a human before it goes live.**
+
+## Schedule
+
+`scheduler.py` is invoked once a day by an external OS-level scheduler
+(cron / systemd timer / Task Scheduler). It is a no-op every day except:
+
+* **Tuesday** -- research a fresh topic, draft a full post, save it.
+* **Friday** -- research a fresh topic, draft a full post, save it.
+
+Each run produces one complete draft (not just an idea), so two full
+drafts land per week.
+
+## Approval by email
+
+After a draft is saved with status `pending_approval`, `LinkedInAgent`
+emails the full draft text to `NOTIFY_TO_EMAIL` (see
+`app/services/notification_service.py` and the SMTP variables in
+`.env.example`). The person reads the email and, if happy with it,
+copies the text onto LinkedIn **manually**.
+
+This project does **not** call the LinkedIn API and does **not** post
+anything automatically, anywhere. That is intentional (see `CLAUDE.md`:
+"Never publish automatically"). Email notifications are purely a
+"please review this" nudge, not a publish step, and are entirely
+optional -- leave `SMTP_HOST` empty in `.env` to disable them.
+
+## Closing the loop
+
+Once a draft has been posted by hand, run:
+
+```bash
+python manage.py list-pending      # see what's waiting for review
+python manage.py show <post_id>    # print one draft's full text
+python manage.py mark-posted <post_id>
+```
+
+`mark-posted` only updates the local business database
+(`app/memory/database.py`) so records stay accurate -- it never talks
+to LinkedIn.
+
+## If full automatic publishing is wanted later
+
+Actually posting to LinkedIn without a human step would require a
+LinkedIn Developer App (the "Share on LinkedIn" product, `w_member_social`
+scope) and an OAuth token obtained by the account owner -- LinkedIn does
+not allow this to be done on someone else's behalf. That integration is
+a deliberate future direction, not current scope.
+
+---
+
 # 21. Current Design Principles
 
 When continuing development, follow these rules.

@@ -30,16 +30,6 @@ class ChatRequest(BaseModel):
     """Request payload for the /chat endpoint.
 
     Attributes:
-        message: The user's chat message text.
-    """
-
-    message: str
-
-
-class ChatRequest(BaseModel):
-    """Request payload for the /chat endpoint.
-
-    Attributes:
         message: The user's input message to send to the agent.
     """
 

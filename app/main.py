@@ -5,12 +5,19 @@ endpoint. No real AI, database, authentication, or business logic is
 implemented here.
 """
 
+import logging
+
 from fastapi import FastAPI
 
 from app.agent.base_agent import BaseAgent
 from app.config.settings import settings
 from app.models.message import ChatRequest
 from app.models.response import ChatResponse
+
+logging.basicConfig(
+    level=getattr(logging, settings.log_level.upper(), logging.INFO),
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
 
 app = FastAPI(title=settings.app_name, version="0.1.0")
 agent = BaseAgent()

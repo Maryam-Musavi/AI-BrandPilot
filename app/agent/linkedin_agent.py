@@ -21,6 +21,13 @@ Sprint 12 adds the knowledge layer:
   includes what's already been said. This step is best-effort: if the
   embedding backend is unavailable, it's logged and skipped -- it never
   blocks or breaks the primary posting workflow.
+
+Sprint 13 adds email notifications: once a draft is saved, an email is
+sent to the configured recipient with the full draft text, so a human
+knows to review and (if happy with it) post it on LinkedIn themselves.
+Sending is best-effort and off by default (see NotificationService) --
+it never blocks or breaks the primary posting workflow, and it is NOT
+a publish step. No LinkedIn API call exists anywhere in this project.
 """
 
 from typing import Any, Dict, Optional
@@ -32,8 +39,9 @@ from app.agent.research_agent import (
     LocalMockTopicSource,
     ResearchAgent,
 )
+from app.memory.database import Database
 from app.services.knowledge_service import KnowledgeService
-from memory.database import Database
+from app.services.notification_service import NotificationService
 
 STATUS_IDEA = "idea"
 STATUS_PENDING_APPROVAL = "pending_approval"
@@ -48,6 +56,7 @@ class LinkedInAgent:
         content_agent: Optional[ContentAgent] = None,
         database: Optional[Database] = None,
         knowledge_service: Optional[KnowledgeService] = None,
+        notification_service: Optional[NotificationService] = None,
     ) -> None:
         """Initialize the agent and its collaborators.
 
@@ -69,9 +78,14 @@ class LinkedInAgent:
                 Defaults to a new KnowledgeService instance if not
                 provided. Has no effect on the workflow's core behavior
                 while the knowledge base is empty.
+            notification_service: The email notification service used
+                to alert a human that a draft is ready for review.
+                Defaults to a new NotificationService instance if not
+                provided. Has no effect if SMTP is not configured.
         """
         self.database = database or Database()
         self.knowledge_service = knowledge_service or KnowledgeService()
+        self.notification_service = notification_service or NotificationService()
         self.research_agent = research_agent or ResearchAgent(
             topic_source=CompositeTopicSource(
                 [
@@ -146,6 +160,7 @@ class LinkedInAgent:
         )
 
         self._ingest_post_into_knowledge_base(saved_post_id, content)
+        self._notify_for_approval(saved_post_id, brief["topic"], content)
 
         return {
             "post_id": saved_post_id,
@@ -174,3 +189,26 @@ class LinkedInAgent:
             self.database.log_agent_action(
                 "LinkedInAgent", f"knowledge_ingestion_failed:post:{post_id}"
             )
+
+    def _notify_for_approval(self, post_id: int, topic: str, content: str) -> None:
+        """Email the draft to the configured recipient, best-effort.
+
+        This is purely a "please review this" notification. It never
+        publishes anything and never blocks or breaks the primary
+        posting workflow: NotificationService itself already logs and
+        swallows any failure, and does nothing at all if email is not
+        configured (see app/services/notification_service.py).
+
+        Args:
+            post_id: The id of the post that was just saved.
+            topic: The post's topic, used in the email subject.
+            content: The post's text content.
+        """
+        sent = self.notification_service.send_draft_for_approval(
+            post_id, topic, content
+        )
+        self.database.log_agent_action(
+            "LinkedInAgent",
+            f"{'notified_for_approval' if sent else 'notification_skipped'}"
+            f":post:{post_id}",
+        )

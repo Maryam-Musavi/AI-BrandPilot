@@ -1,23 +1,24 @@
 """
-Scheduler entrypoint for autonomous LinkedIn workflows.
+Scheduler entrypoint for the twice-weekly LinkedIn draft workflow.
 
 This is deliberately NOT a long-running in-process scheduler and does
-not depend on any scheduling library (APScheduler, Celery beat, etc.),
-per Sprint 11 scope. Instead, it is meant to be invoked once per day by
-an external OS-level scheduler (cron, systemd timer, Windows Task
-Scheduler, ...). Each run checks today's weekday, runs the matching
-LinkedIn workflow step (if any) via LinkedInAgent, logs the outcome, and
-exits.
+not depend on any scheduling library (APScheduler, Celery beat, etc.).
+Instead, it is meant to be invoked once per day by an external OS-level
+scheduler (cron, systemd timer, Windows Task Scheduler, ...). Each run
+checks today's weekday and, on a posting day, researches a topic,
+drafts a full post, saves it with status "pending_approval", and emails
+it to you for review (see app/services/notification_service.py).
 
-Example crontab entry (runs once daily at 09:00 server time):
+Example crontab entry (runs once daily at 09:00 server time; the
+script itself decides whether today is a posting day):
 
     0 9 * * * cd /path/to/AI-BrandPilot && python scheduler.py >> logs/scheduler.log 2>&1
 
-Weekly plan (Sprint 11):
-    Monday    -> generate_post_idea()   (research + pick a topic)
-    Wednesday -> generate_post_draft()  (write the draft, save for approval)
-
-All other days: no-op.
+Posting cadence: twice a week, Tuesday and Friday. Each run produces
+ONE complete, ready-to-review draft -- so two full drafts land in your
+inbox per week. Nothing is ever posted to LinkedIn automatically; you
+still copy the approved text onto LinkedIn yourself. All other days
+are a no-op.
 """
 
 import logging
@@ -33,34 +34,20 @@ logging.basicConfig(
 )
 logger = logging.getLogger("scheduler")
 
-MONDAY = 0
-WEDNESDAY = 2
+TUESDAY = 1
+FRIDAY = 4
 
 
-def run_monday_workflow(agent: LinkedInAgent) -> None:
-    """Run the Monday step: research and select this week's topic.
-
-    Args:
-        agent: The LinkedInAgent to run the workflow against.
-    """
-    result = agent.generate_post_idea()
-    logger.info(
-        "Monday workflow complete: post_id=%s topic=%r",
-        result["post_id"],
-        result["brief"]["topic"],
-    )
-
-
-def run_wednesday_workflow(agent: LinkedInAgent) -> None:
-    """Run the Wednesday step: draft content for this week's topic.
+def run_draft_workflow(agent: LinkedInAgent) -> None:
+    """Research a fresh topic, draft a full post, save it, and notify.
 
     Args:
         agent: The LinkedInAgent to run the workflow against.
     """
     result = agent.generate_post_draft()
     logger.info(
-        "Wednesday workflow complete: post_id=%s topic=%r status=%s "
-        "(awaiting human approval)",
+        "Draft workflow complete: post_id=%s topic=%r status=%s "
+        "(emailed for your review -- nothing was posted automatically)",
         result["post_id"],
         result["topic"],
         result["status"],
@@ -68,8 +55,8 @@ def run_wednesday_workflow(agent: LinkedInAgent) -> None:
 
 
 _WEEKDAY_TASKS: Dict[int, Callable[[LinkedInAgent], None]] = {
-    MONDAY: run_monday_workflow,
-    WEDNESDAY: run_wednesday_workflow,
+    TUESDAY: run_draft_workflow,
+    FRIDAY: run_draft_workflow,
 }
 
 

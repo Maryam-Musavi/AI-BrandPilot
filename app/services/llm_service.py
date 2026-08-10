@@ -6,9 +6,13 @@ completions. No other AI provider, streaming, memory, or database is
 implemented here.
 """
 
+import logging
+
 from ollama import Client
 
 from app.config.settings import settings
+
+logger = logging.getLogger(__name__)
 
 
 class LLMService:
@@ -36,4 +40,9 @@ class LLMService:
             )
             return response.message.content
         except Exception:
+            logger.exception(
+                "Ollama request failed (host=%s, model=%s).",
+                settings.ollama_base_url,
+                settings.ollama_model,
+            )
             return "Ollama is unavailable."
