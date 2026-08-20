@@ -767,20 +767,6 @@ Deactivate the same way on every platform:
 deactivate
 ```
 
-### Creating and activating the virtual environment (macOS / Linux)
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-Deactivate the same way on every platform:
-
-```bash
-deactivate
-```
-
 ---
 
 # 23. Important Environment Constraint
