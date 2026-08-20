@@ -514,6 +514,8 @@ git commit -m "Short descriptive message"
 
 Do not create large unrelated commits.
 
+
+
 ### Never commit `.env` (it holds real secrets)
 
 `.env` (Ollama settings, SMTP host/username/App Password, `NOTIFY_TO_EMAIL`)
@@ -748,6 +750,20 @@ middle command, not the whole block):
 To leave the virtual environment:
 
 ```bat
+deactivate
+```
+
+### Creating and activating the virtual environment (macOS / Linux)
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Deactivate the same way on every platform:
+
+```bash
 deactivate
 ```
 
