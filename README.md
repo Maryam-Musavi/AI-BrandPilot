@@ -514,6 +514,34 @@ git commit -m "Short descriptive message"
 
 Do not create large unrelated commits.
 
+### Never commit `.env` (it holds real secrets)
+
+`.env` (Ollama settings, SMTP host/username/App Password, `NOTIFY_TO_EMAIL`)
+is listed in `.gitignore`, so a normal `git add .` / `git add -A` can never
+stage it. Verify this whenever you're unsure, especially after editing
+`.gitignore` itself:
+
+```bash
+git status                        # .env must NOT appear in this list
+git check-ignore -v .env          # confirms .gitignore is catching it
+git log --all --oneline -- .env   # must be empty -- .env was never committed
+```
+
+If that last command ever prints a commit (meaning `.env` was committed
+at some point in the project's history, even if it's ignored now):
+
+1. Treat every secret in that file as leaked, even if the repository is
+   private or the commit was later removed -- rotate them immediately
+   (e.g. revoke the Gmail App Password at
+   `myaccount.google.com/apppasswords` and generate a new one).
+2. Removing the file from the *current* commit is not enough; it still
+   exists in earlier commits' history and needs a history-rewrite tool
+   (`git filter-repo` or the BFG Repo-Cleaner) to be fully gone.
+
+Never run `git add .env -f` (the `-f` flag forces Git to stage a file
+even though `.gitignore` says not to) -- this is the one command that
+can defeat the protection above.
+
 ---
 
 # 19. Important Development History
@@ -698,6 +726,44 @@ A Python virtual environment is used:
 ```
 
 Do not commit the virtual environment to Git.
+
+### Creating and activating the virtual environment (Windows)
+
+Run once, from the project root (the folder containing `requirements.txt`):
+
+```bat
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+After activation, the prompt shows `(.venv)` at the start of the line.
+Every new terminal session needs the activate step again (just the
+middle command, not the whole block):
+
+```bat
+.venv\Scripts\activate
+```
+
+To leave the virtual environment:
+
+```bat
+deactivate
+```
+
+### Creating and activating the virtual environment (macOS / Linux)
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Deactivate the same way on every platform:
+
+```bash
+deactivate
+```
 
 ---
 
